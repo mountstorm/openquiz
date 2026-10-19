@@ -65,3 +65,11 @@ Open an issue or submit a pull request. Keep server-side validation and answer s
 ## License
 
 MIT; see [LICENSE](LICENSE). Dependencies retain their respective licenses. OpenQuiz is an independent implementation and is not affiliated with Kahoot. It does not use Kahoot code, branding, or assets.
+
+## AWS meetup quiz and QR codes
+
+The home page features an eight-question AWS introduction based on Muz’s meetup questions. Choose **Preview on big screen** to rehearse without players, use **Reveal answer** and **Next question**, and select the full-screen icon for a projector. The stable `/?quiz=aws` URL opens this preview. **Edit questions** lets you customize the quiz, photo URLs, and explanations before saving and hosting.
+
+**Website QR** downloads a PNG pointing at the current website origin; it stays valid while the hostname stays the same. Each host lobby also generates a separate QR code containing the active room’s join link. Game rooms expire after 24 hours, so do not print a room QR for a future session.
+
+Question explanations cite official AWS pages where applicable. The Builder ID question is the organizer’s group-specific instruction. Illustrative infrastructure photographs do not claim to depict AWS facilities. Photograph rights remain with their original owners; the MIT license covers the application code.

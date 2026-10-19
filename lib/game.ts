@@ -1,10 +1,21 @@
-export type Question = { text: string; options: string[]; correct: number; seconds: number };
+export type Question = { text: string; options: string[]; correct: number; seconds: number; image?: string; imageAlt?: string; explanation?: string; source?: string };
 export type Quiz = { title: string; questions: Question[] };
 export type Player = { id: string; token: string; name: string; score: number; answers: Record<string, { choice: number; points: number }> };
 export type Room = { code: string; host: string; quiz: Quiz; phase: 'lobby'|'question'|'reveal'|'final'; index: number; deadline: number; players: Player[] };
+export function validImage(value: unknown): boolean {
+ if (typeof value !== 'string' || value.length > 2000) return false;
+ if (/^\/photos\/[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$/.test(value)) return true;
+ try { const u=new URL(value); return u.protocol==='https:' && !u.username && !u.password; } catch { return false; }
+}
 export function validateQuiz(q: Quiz) {
  if (!q || typeof q.title !== 'string' || !q.title.trim() || q.title.length > 100 || !Array.isArray(q.questions) || q.questions.length < 1 || q.questions.length > 50) throw Error('Add a title and between 1 and 50 questions.');
  for (const x of q.questions) if (!x || typeof x.text !== 'string' || !x.text.trim() || x.text.length > 300 || !Array.isArray(x.options) || x.options.length !== 4 || x.options.some(o=>typeof o !== 'string'||!o.trim()||o.length>120) || !Number.isInteger(x.correct) || x.correct < 0 || x.correct > 3 || ![10,20,30,60].includes(x.seconds)) throw Error('Each question needs four answers, a correct answer, and a 10, 20, 30, or 60 second timer.');
+ for (const x of q.questions) {
+  if (x.image && !validImage(x.image)) throw Error('Photos need a valid HTTPS image URL.');
+  if (x.imageAlt && (typeof x.imageAlt !== 'string'||x.imageAlt.length>200)) throw Error('Photo descriptions must be under 200 characters.');
+  if (x.explanation && (typeof x.explanation !== 'string'||x.explanation.length>600)) throw Error('Explanations must be under 600 characters.');
+  if (x.source && (typeof x.source !== 'string'||x.source.length>2000||!/^https:\/\//.test(x.source))) throw Error('Sources must use HTTPS.');
+ }
 }
 export function phase(r: Room, now=Date.now()) { return r.phase==='question' && now>=r.deadline ? 'reveal' : r.phase; }
 export function apply(r: Room, b: any, now=Date.now()) {
@@ -34,5 +45,5 @@ export function apply(r: Room, b: any, now=Date.now()) {
 export function view(r:Room,token:string,now=Date.now()) {
  const p=r.players.find(p=>p.token===token);const host=token===r.host;if(!host&&!p) throw Error('Your game session was not found.');
  const stage=phase(r,now),show=stage==='reveal'||stage==='final',q=r.quiz.questions[r.index];
- return {code:r.code,title:r.quiz.title,phase:stage,index:r.index,total:r.quiz.questions.length,deadline:r.deadline,serverTime:now,host,question:stage==='lobby'?null:{text:q.text,options:q.options,seconds:q.seconds,...(show?{correct:q.correct}:{})},players:r.players.map(p=>({id:p.id,name:p.name,score:stage==='question'?p.score-(p.answers[r.index]?.points??0):p.score})).sort((a,b)=>b.score-a.score),answered:r.players.filter(p=>p.answers[r.index]).length,me:p?{id:p.id,choice:p.answers[r.index]?.choice,...(show?{points:p.answers[r.index]?.points??0}:{})}:null,counts:show?q.options.map((_,i)=>r.players.filter(p=>p.answers[r.index]?.choice===i).length):null};
+ return {code:r.code,title:r.quiz.title,phase:stage,index:r.index,total:r.quiz.questions.length,deadline:r.deadline,serverTime:now,host,question:stage==='lobby'?null:{text:q.text,options:q.options,seconds:q.seconds,image:q.image,imageAlt:q.imageAlt,...(show?{correct:q.correct,explanation:q.explanation,source:q.source}:{})},players:r.players.map(p=>({id:p.id,name:p.name,score:stage==='question'?p.score-(p.answers[r.index]?.points??0):p.score})).sort((a,b)=>b.score-a.score),answered:r.players.filter(p=>p.answers[r.index]).length,me:p?{id:p.id,choice:p.answers[r.index]?.choice,...(show?{points:p.answers[r.index]?.points??0}:{})}:null,counts:show?q.options.map((_,i)=>r.players.filter(p=>p.answers[r.index]?.choice===i).length):null};
 }
