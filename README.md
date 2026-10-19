@@ -73,3 +73,11 @@ The home page features an eight-question AWS introduction based on Muz’s meetu
 **Website QR** downloads a PNG pointing at the current website origin; it stays valid while the hostname stays the same. Each host lobby also generates a separate QR code containing the active room’s join link. Game rooms expire after 24 hours, so do not print a room QR for a future session.
 
 Question explanations cite official AWS pages where applicable. The Builder ID question is the organizer’s group-specific instruction. Illustrative infrastructure photographs do not claim to depict AWS facilities. Photograph rights remain with their original owners; the MIT license covers the application code.
+
+## Animated round flow
+
+Live games now follow **question → answer reveal → leaderboard → next question**. The host chooses **Show leaderboard** after discussing the answer, then **Next question** when everyone is ready. The leaderboard occupies its own `/leaderboard` page; host and player screens follow the server phase together. Refreshing this page restores the same tab’s session. The last reveal opens the final podium instead.
+
+The scoreboard includes animated score totals, a top-three podium, rank gains, streak badges, icon avatars, and a brief confetti burst. Tied scores share ranks. Streaks are visual encouragement and do not change the scoring formula. Question cards, answer locking, and correct-answer feedback have animations. Reduced-motion preferences disable decorative motion and score counting.
+
+Visit `/leaderboard?demo=leaderboard` for a clearly labeled demo with sample players, or choose **Preview leaderboard** on the homepage. Live scoreboards never use demo scores.

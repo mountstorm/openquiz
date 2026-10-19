@@ -1,7 +1,7 @@
 export type Question = { text: string; options: string[]; correct: number; seconds: number; image?: string; imageAlt?: string; explanation?: string; source?: string };
 export type Quiz = { title: string; questions: Question[] };
 export type Player = { id: string; token: string; name: string; score: number; answers: Record<string, { choice: number; points: number }> };
-export type Room = { code: string; host: string; quiz: Quiz; phase: 'lobby'|'question'|'reveal'|'final'; index: number; deadline: number; players: Player[] };
+export type Room = { code: string; host: string; quiz: Quiz; phase: 'lobby'|'question'|'reveal'|'leaderboard'|'final'; index: number; deadline: number; players: Player[] };
 export function validImage(value: unknown): boolean {
  if (typeof value !== 'string' || value.length > 2000) return false;
  if (/^\/photos\/[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$/.test(value)) return true;
@@ -38,12 +38,16 @@ export function apply(r: Room, b: any, now=Date.now()) {
  if(b.token!==r.host) throw Error('Only the host can control this game.');
  if(b.action==='start'&&r.phase==='lobby') { r.phase='question';r.index=0;r.deadline=now+r.quiz.questions[0].seconds*1000; }
  else if(b.action==='reveal'&&phase(r,now)==='question') r.phase='reveal';
- else if(b.action==='next'&&phase(r,now)==='reveal') {r.index++;if(r.index>=r.quiz.questions.length){r.index=r.quiz.questions.length-1;r.phase='final';}else {r.phase='question';r.deadline=now+r.quiz.questions[r.index].seconds*1000;}}
+ else if(b.action==='leaderboard'&&phase(r,now)==='reveal') {r.phase=r.index+1===r.quiz.questions.length?'final':'leaderboard';}
+ else if(b.action==='next'&&r.phase==='leaderboard') {r.index++;if(r.index>=r.quiz.questions.length){r.index=r.quiz.questions.length-1;r.phase='final';}else {r.phase='question';r.deadline=now+r.quiz.questions[r.index].seconds*1000;}}
  else throw Error('That action is not available now.');
  return {};
 }
 export function view(r:Room,token:string,now=Date.now()) {
  const p=r.players.find(p=>p.token===token);const host=token===r.host;if(!host&&!p) throw Error('Your game session was not found.');
- const stage=phase(r,now),show=stage==='reveal'||stage==='final',q=r.quiz.questions[r.index];
- return {code:r.code,title:r.quiz.title,phase:stage,index:r.index,total:r.quiz.questions.length,deadline:r.deadline,serverTime:now,host,question:stage==='lobby'?null:{text:q.text,options:q.options,seconds:q.seconds,image:q.image,imageAlt:q.imageAlt,...(show?{correct:q.correct,explanation:q.explanation,source:q.source}:{})},players:r.players.map(p=>({id:p.id,name:p.name,score:stage==='question'?p.score-(p.answers[r.index]?.points??0):p.score})).sort((a,b)=>b.score-a.score),answered:r.players.filter(p=>p.answers[r.index]).length,me:p?{id:p.id,choice:p.answers[r.index]?.choice,...(show?{points:p.answers[r.index]?.points??0}:{})}:null,counts:show?q.options.map((_,i)=>r.players.filter(p=>p.answers[r.index]?.choice===i).length):null};
+ const stage=phase(r,now),show=stage==='reveal'||stage==='leaderboard'||stage==='final',q=r.quiz.questions[r.index];
+ const previous=[...r.players].sort((a,b)=>(b.score-(b.answers[r.index]?.points??0))-(a.score-(a.answers[r.index]?.points??0)));
+ const standings=r.players.map(p=>{let streak=0;for(let i=r.index;i>=0&&p.answers[i]?.points>0;i--)streak++;return {id:p.id,name:p.name,score:stage==='question'?p.score-(p.answers[r.index]?.points??0):p.score,...(show?{previousScore:p.score-(p.answers[r.index]?.points??0),previousRank:1+previous.filter(x=>x.score-(x.answers[r.index]?.points??0)>p.score-(p.answers[r.index]?.points??0)).length,roundPoints:p.answers[r.index]?.points??0,streak}:{})};}).sort((a,b)=>b.score-a.score);
+ const ranked=standings.map(p=>({...p,rank:1+standings.filter(x=>x.score>p.score).length}));
+ return {code:r.code,title:r.quiz.title,phase:stage,index:r.index,total:r.quiz.questions.length,deadline:r.deadline,serverTime:now,host,question:['lobby','leaderboard','final'].includes(stage)?null:{text:q.text,options:q.options,seconds:q.seconds,image:q.image,imageAlt:q.imageAlt,...(show?{correct:q.correct,explanation:q.explanation,source:q.source}:{})},players:ranked,answered:r.players.filter(p=>p.answers[r.index]).length,me:p?{id:p.id,choice:p.answers[r.index]?.choice,...(show?{points:p.answers[r.index]?.points??0}:{})}:null,counts:show?q.options.map((_,i)=>r.players.filter(p=>p.answers[r.index]?.choice===i).length):null};
 }
