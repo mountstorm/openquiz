@@ -76,7 +76,7 @@ Question explanations cite official AWS pages where applicable. The Builder ID q
 
 ## Animated round flow
 
-Live games now follow **question → answer reveal → leaderboard → next question**. The host chooses **Show leaderboard** after discussing the answer, then **Next question** when everyone is ready. The leaderboard occupies its own `/leaderboard` page; host and player screens follow the server phase together. Refreshing this page restores the same tab’s session. The last reveal opens the final podium instead.
+Live games now follow **question → answer reveal → leaderboard → next question**. After the host clicks **Reveal answer** (or the timer expires), the correct answer appears for three seconds, then everyone automatically moves to the leaderboard. The host chooses **Next question** when everyone is ready. The leaderboard occupies its own `/leaderboard` page; host and player screens follow the server phase together. Refreshing this page restores the same tab’s session. The last reveal opens the final podium instead.
 
 The scoreboard includes animated score totals, a top-three podium, rank gains, streak badges, icon avatars, and a brief confetti burst. Tied scores share ranks. Streaks are visual encouragement and do not change the scoring formula. Question cards, answer locking, and correct-answer feedback have animations. Reduced-motion preferences disable decorative motion and score counting.
 

@@ -1,7 +1,7 @@
 export type Question = { text: string; options: string[]; correct: number; seconds: number; image?: string; imageAlt?: string; explanation?: string; source?: string };
 export type Quiz = { title: string; questions: Question[] };
 export type Player = { id: string; token: string; name: string; score: number; answers: Record<string, { choice: number; points: number }> };
-export type Room = { code: string; host: string; quiz: Quiz; phase: 'lobby'|'question'|'reveal'|'leaderboard'|'final'; index: number; deadline: number; players: Player[] };
+export type Room = { code: string; host: string; quiz: Quiz; phase: 'lobby'|'question'|'reveal'|'leaderboard'|'final'; index: number; deadline: number; revealUntil?: number; players: Player[] };
 export function validImage(value: unknown): boolean {
  if (typeof value !== 'string' || value.length > 2000) return false;
  if (/^\/photos\/[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$/.test(value)) return true;
@@ -17,7 +17,14 @@ export function validateQuiz(q: Quiz) {
   if (x.source && (typeof x.source !== 'string'||x.source.length>2000||!/^https:\/\//.test(x.source))) throw Error('Sources must use HTTPS.');
  }
 }
-export function phase(r: Room, now=Date.now()) { return r.phase==='question' && now>=r.deadline ? 'reveal' : r.phase; }
+export function phase(r: Room, now=Date.now()) {
+ const revealEnd=r.phase==='question'?r.deadline+3000:r.revealUntil;
+ if((r.phase==='question'&&now>=r.deadline)||r.phase==='reveal'){
+  if(revealEnd!==undefined&&now>=revealEnd)return r.index+1===r.quiz.questions.length?'final':'leaderboard';
+  return 'reveal';
+ }
+ return r.phase;
+}
 export function apply(r: Room, b: any, now=Date.now()) {
  if(b.action==='join') {
   if(r.phase!=='lobby') throw Error('This game has already started.');
@@ -37,9 +44,9 @@ export function apply(r: Room, b: any, now=Date.now()) {
  }
  if(b.token!==r.host) throw Error('Only the host can control this game.');
  if(b.action==='start'&&r.phase==='lobby') { r.phase='question';r.index=0;r.deadline=now+r.quiz.questions[0].seconds*1000; }
- else if(b.action==='reveal'&&phase(r,now)==='question') r.phase='reveal';
+ else if(b.action==='reveal'&&phase(r,now)==='question') {r.phase='reveal';r.revealUntil=now+3000;}
  else if(b.action==='leaderboard'&&phase(r,now)==='reveal') {r.phase=r.index+1===r.quiz.questions.length?'final':'leaderboard';}
- else if(b.action==='next'&&r.phase==='leaderboard') {r.index++;if(r.index>=r.quiz.questions.length){r.index=r.quiz.questions.length-1;r.phase='final';}else {r.phase='question';r.deadline=now+r.quiz.questions[r.index].seconds*1000;}}
+ else if(b.action==='next'&&phase(r,now)==='leaderboard') {r.index++;if(r.index>=r.quiz.questions.length){r.index=r.quiz.questions.length-1;r.phase='final';}else {r.phase='question';r.deadline=now+r.quiz.questions[r.index].seconds*1000;}}
  else throw Error('That action is not available now.');
  return {};
 }
