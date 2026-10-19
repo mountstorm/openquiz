@@ -1,6 +1,6 @@
-# OpenQuiz ✳
+# Mahoot!
 
-[Play OpenQuiz](https://openquiz-big-screen.mkhaydar409183.chatgpt.site) · [Source repository](https://github.com/mountstorm/openquiz)
+[Play Mahoot](https://openquiz-big-screen.mkhaydar409183.chatgpt.site) · [Source repository](https://github.com/mountstorm/openquiz)
 
 An original, MIT-licensed live quiz game. Put the host screen on a projector, let players join from their phones, and enjoy some friendly competition. No feature paywall or player accounts.
 
@@ -64,7 +64,7 @@ Open an issue or submit a pull request. Keep server-side validation and answer s
 
 ## License
 
-MIT; see [LICENSE](LICENSE). Dependencies retain their respective licenses. OpenQuiz is an independent implementation and is not affiliated with Kahoot. It does not use Kahoot code, branding, or assets.
+MIT; see [LICENSE](LICENSE). Dependencies retain their respective licenses. Mahoot is an independent implementation and is not affiliated with Kahoot. It does not use Kahoot code, branding, or assets.
 
 ## AWS meetup quiz and QR codes
 
