@@ -1,5 +1,7 @@
 # OpenQuiz ✳
 
+[Play OpenQuiz](https://openquiz-big-screen.mkhaydar409183.chatgpt.site) · [Source repository](https://github.com/mountstorm/openquiz)
+
 An original, MIT-licensed live quiz game. Put the host screen on a projector, let players join from their phones, and enjoy some friendly competition. No feature paywall or player accounts.
 
 ## Features
